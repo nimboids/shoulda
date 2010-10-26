@@ -62,7 +62,12 @@ module Shoulda # :nodoc:
         end
 
         def description
-          "send an email"
+          description = "send an email"
+          description << " with subject #{@email_subject.inspect}" if @email_subject
+          description << " with body #{@body.inspect}" if @body
+          description << " from #{@sender.inspect}" if @sender
+          description << " to #{@recipient.inspect}" if @recipient
+          description
         end
 
         private

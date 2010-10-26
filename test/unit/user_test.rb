@@ -3,44 +3,50 @@ require 'test_helper'
 class UserTest < ActiveSupport::TestCase
   fixtures :all
 
-  should_have_many :posts
-  should_have_many :dogs
-  should_have_many :cats
+  should have_many(:posts)
+  should have_many(:dogs)
+  should have_many(:cats)
 
-  should_have_many :friendships
-  should_have_many :friends
+  should have_many(:friendships)
+  should have_many(:friends)
 
-  should_have_one :address
-  should_have_one :address, :dependent => :destroy
+  should have_one(:address)
+  should have_one(:address).dependent(:destroy)
 
-  should_have_db_indices :email, :name
-  should_have_db_index :age
-  should_have_db_index [:email, :name], :unique => true
-  should_have_db_index :age, :unique => false
+  should have_db_index(:email)
+  should have_db_index(:name)
+  should have_db_index(:age)
+  should have_db_index([:email, :name]).unique(true)
+  should have_db_index(:age).unique(false)
 
-  should_not_allow_values_for :email, "blah", "b lah"
-  should_allow_values_for :email, "a@b.com", "asdf@asdf.com"
-  should_allow_values_for :age, 1, 10, 99
-  should_not_allow_values_for :age, "a", "-"
-  should_not_allow_values_for :ssn, "a", 1234567890
-  should_ensure_length_in_range :email, 1..100
-  should_ensure_value_in_range :age, 1..100, :low_message  => /greater/,
-                                             :high_message => /less/
+  should_not allow_value('blah').for(:email)
+  should_not allow_value('b lah').for(:email)
+  should allow_value('a@b.com').for(:email)
+  should allow_value('asdf@asdf.com').for(:email)
+  should allow_value(1).for(:age)
+  should allow_value(10).for(:age)
+  should allow_value(99).for(:age)
+  should_not allow_value('a').for(:age)
+  should_not allow_value('-').for(:age)
+  should_not allow_value('a').for(:ssn)
+  should_not allow_value(1234567890).for(:ssn)
+  should ensure_length_of(:email).is_at_least(1).is_at_most(100)
+  should validate_numericality_of(:age)
+  should ensure_inclusion_of(:age).in_range(1..100).with_high_message(/less/).with_low_message(/greater/)
 
-  should_not_allow_mass_assignment_of :password
-  should_have_class_methods :find, :destroy
-  should_have_instance_methods :email, :age, :email=, :valid?
-  should_have_db_columns :name, :email, :age
-  should_have_db_column :id,    :type => "integer"
-  should_have_db_column :email, :type => "string", :default => nil, :precision => nil, :limit    => 255,
-                                :null => true,     :scale   => nil
-  should_validate_acceptance_of :eula
-  should_validate_uniqueness_of :email, :scoped_to => :name, :case_sensitive => false
+  should_not allow_mass_assignment_of(:password)
+  should have_db_column(:name)
+  should have_db_column(:email)
+  should have_db_column(:age)
+  should have_db_column(:id).of_type(:integer)
+  should have_db_column(:email).of_type(:string).with_options(:default => nil, :precision => nil, :limit => 255, :null => true, :scale => nil)
+  should validate_acceptance_of(:eula)
+  should validate_uniqueness_of(:email).scoped_to(:name).case_insensitive
 
-  should_ensure_length_is :ssn, 9, :message => "Social Security Number is not the right length"
-  should_validate_numericality_of :ssn
+  should ensure_length_of(:ssn).is_equal_to(9).with_message("Social Security Number is not the right length")
+  should validate_numericality_of(:ssn)
 
-  should_have_readonly_attributes :name
+  should have_readonly_attribute(:name)
 
-  should_have_one :profile, :through => :registration
+  should have_one(:profile).through(:registration)
 end

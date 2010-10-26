@@ -4,20 +4,21 @@ class ProductTest < ActiveSupport::TestCase
   context "An intangible product" do
     subject { Product.new(:tangible => false) }
 
-    should_validate_presence_of :title
-    should_not_allow_values_for :size, "22"
-    should_allow_values_for :size, "22kb"
-    should_ensure_value_in_range :price, 0..99
+    should validate_presence_of(:title)
+    should_not allow_value('22').for(:size)
+    should allow_value('22kb').for(:size)
+    should ensure_inclusion_of(:price).in_range(0..99)
   end
 
   context "A tangible product" do
     subject { Product.new(:tangible => true) }
 
-    should_validate_presence_of :price
-    should_ensure_value_in_range :price, 1..9999
-    should_ensure_value_in_range :weight, 1..100
-    should_not_allow_values_for :size, "22", "10x15"
-    should_allow_values_for :size, "12x12x1"
-    should_ensure_length_in_range :size, 5..20
+    should validate_presence_of(:price)
+    should ensure_inclusion_of(:price).in_range(1..9999)
+    should ensure_inclusion_of(:weight).in_range(1..100)
+    should_not allow_value('22').for(:size)
+    should_not allow_value('10x15').for(:size)
+    should allow_value('12x12x1').for(:size)
+    should ensure_length_of(:size).is_at_least(5).is_at_most(20)
   end
 end

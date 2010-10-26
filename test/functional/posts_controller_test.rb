@@ -15,23 +15,23 @@ class PostsControllerTest < ActionController::TestCase
   end
 
   # autodetects the :controller
-  should_route :get,    '/posts',     :action => :index
+  should route(:get,    '/posts').to(:action => :index)
   # explicitly specify :controller
-  should_route :post,   '/posts',     :controller => :posts, :action => :create
+  should route(:post,   '/posts').to(:controller => :posts, :action => :create)
   # non-string parameter
-  should_route :get,    '/posts/1',   :action => :show, :id => 1
+  should route(:get,    '/posts/1').to(:action => :show, :id => 1)
   # string-parameter
-  should_route :put,    '/posts/1',   :action => :update, :id => "1"
-  should_route :delete, '/posts/1',   :action => :destroy, :id => 1
-  should_route :get,    '/posts/new', :action => :new
+  should route(:put,    '/posts/1').to(:action => :update, :id => "1")
+  should route(:delete, '/posts/1').to(:action => :destroy, :id => 1)
+  should route(:get,    '/posts/new').to(:action => :new)
 
   # Test the nested routes
-  should_route :get,    '/users/5/posts',     :action => :index, :user_id => 5
-  should_route :post,   '/users/5/posts',     :action => :create, :user_id => 5
-  should_route :get,    '/users/5/posts/1',   :action => :show, :id => 1, :user_id => 5
-  should_route :delete, '/users/5/posts/1',   :action => :destroy, :id => 1, :user_id => 5
-  should_route :get,    '/users/5/posts/new', :action => :new, :user_id => 5
-  should_route :put,    '/users/5/posts/1',   :action => :update, :id => 1, :user_id => 5
+  should route(:get,    '/users/5/posts').to(:action => :index, :user_id => 5)
+  should route(:post,   '/users/5/posts').to(:action => :create, :user_id => 5)
+  should route(:get,    '/users/5/posts/1').to(:action => :show, :id => 1, :user_id => 5)
+  should route(:delete, '/users/5/posts/1').to(:action => :destroy, :id => 1, :user_id => 5)
+  should route(:get,    '/users/5/posts/new').to(:action => :new, :user_id => 5)
+  should route(:put,    '/users/5/posts/1').to(:action => :update, :id => 1, :user_id => 5)
 
   context "Logged in" do
     setup do
@@ -42,18 +42,18 @@ class PostsControllerTest < ActionController::TestCase
       setup do
         get :index, :user_id => users(:first)
       end
-      should_respond_with :success
-      should_assign_to :user, :class => User
-      should_render_template :index
-      should_assign_to(:user) { users(:first) }
+      should respond_with(:success)
+      should render_template(:index)
+      should assign_to(:user).with_kind_of(User).with { users(:first) }
       should_fail do
-        should_assign_to :user, :class => Post
+        should assign_to(:user).with_kind_of(Post)
       end
       should_fail do
-        should_assign_to(:user) { posts(:first) }
+        should assign_to(:user).with { posts(:first) }
       end
-      should_assign_to :posts
-      should_not_assign_to :foo, :bar
+      should assign_to(:posts)
+      should_not assign_to(:foo)
+      should_not assign_to(:bar)
     end
 
     context "viewing posts for a user with rss format" do
@@ -61,41 +61,43 @@ class PostsControllerTest < ActionController::TestCase
         get :index, :user_id => users(:first), :format => 'rss'
         @user = users(:first)
       end
-      should_respond_with :success
-      should_respond_with_content_type 'application/rss+xml'
+      should respond_with(:success)
+      should respond_with_content_type('application/rss+xml')
       context "with a symbol" do
-        should_respond_with_content_type :rss
+        should respond_with_content_type(:rss)
       end
       context "with a regexp" do
-        should_respond_with_content_type /rss/
+        should respond_with_content_type(/rss/)
       end
-      should_set_session(:mischief) { nil }
-      should_set_session(:special) { '$2 off your next purchase' }
-      should_set_session(:special_user_id) { @user.id }
-      should_set_session(:false_var) { false }
+      should set_session(:mischief).to(nil)
+      should set_session(:special).to('$2 off your next purchase')
+      should set_session(:special_user_id).to { @user.id }
+      should set_session(:false_var).to(false)
       should_fail do
-        should_set_session(:special_user_id) { 'value' }
+        should set_session(:special_user_id).to('value')
       end
-      should_assign_to :user, :posts
-      should_not_assign_to :foo, :bar
+      should assign_to(:user)
+      should assign_to(:posts)
+      should_not assign_to(:foo)
+      should_not assign_to(:bar)
     end
 
     context "viewing a post on GET to #show" do
       setup { get :show, :user_id => users(:first), :id => posts(:first) }
-      should_render_with_layout 'wide'
+      should render_with_layout(:wide)
       context "with a symbol" do # to avoid redefining a test
-        should_render_with_layout :wide
+        should render_with_layout(:wide)
       end
-      should_assign_to :false_flag
+      should assign_to(:false_flag)
       should_fail do
-        should_set_the_flash_to /.*/
+        should set_the_flash.to(/.*/)
       end
     end
 
     context "on GET to #new" do
       setup { get :new, :user_id => users(:first) }
-      should_render_without_layout
-      should_not_set_the_flash
+      should_not render_with_layout
+      should_not set_the_flash
     end
 
     context "on POST to #create" do
@@ -105,15 +107,15 @@ class PostsControllerTest < ActionController::TestCase
                                     :body  => 'blah blah blah' }
       end
 
-      should_redirect_to('the created post') { user_post_url(users(:first),
+      should redirect_to('the created post') { user_post_url(users(:first),
                                                              assigns(:post)) }
       should_fail do
-        should_redirect_to('elsewhere') { user_posts_url(users(:first)) }
+        should redirect_to('elsewhere') { user_posts_url(users(:first)) }
       end
 
-      should_set_the_flash_to /success/
+      should set_the_flash.to(/success/)
       should_fail do
-        should_not_set_the_flash
+        should_not set_the_flash
       end
     end
   end

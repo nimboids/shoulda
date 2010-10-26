@@ -1,6 +1,6 @@
 require 'test_helper'
 
 class FriendshipTest < ActiveSupport::TestCase
-  should_belong_to :user
-  should_belong_to :friend
+  should belong_to(:user)
+  should belong_to(:friend)
 end

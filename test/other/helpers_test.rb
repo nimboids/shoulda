@@ -2,6 +2,7 @@ require 'test_helper'
 require 'action_mailer'
 require 'mocha'
 
+class Helpers; end
 class HelpersTest < ActiveSupport::TestCase # :nodoc:
 
   context "given delivered emails" do
@@ -11,26 +12,13 @@ class HelpersTest < ActiveSupport::TestCase # :nodoc:
       ActionMailer::Base.stubs(:deliveries).returns([email1, email2])
     end
 
-    should "have sent an email" do
-      assert_sent_email
-
-      assert_raises(Test::Unit::AssertionFailedError) do
-        assert_did_not_send_email
-      end
+    should have_sent_email.with_subject(/one/)
+    should have_sent_email.with_subject(/two/)
+    should_fail do
+      should_not have_sent_email
     end
-
-    should "find email one" do
-      assert_sent_email do |e|
-        e.subject =~ /one/
-      end
-    end
-
-    should "not find an email that doesn't exist" do
-      assert_raises(Test::Unit::AssertionFailedError) do
-        assert_sent_email do |e|
-          e.subject =~ /whatever/
-        end
-      end
+    should_fail do
+      should have_sent_email.with_subject(/whatever/)
     end
   end
 
@@ -39,12 +27,9 @@ class HelpersTest < ActiveSupport::TestCase # :nodoc:
       ActionMailer::Base.stubs(:deliveries).returns([])
     end
 
-    should "not have sent an email" do
-      assert_did_not_send_email
-
-      assert_raises(Test::Unit::AssertionFailedError) do
-        assert_sent_email
-      end
+    should_not have_sent_email
+    should_fail do
+      should have_sent_email
     end
   end
 
@@ -75,37 +60,6 @@ class HelpersTest < ActiveSupport::TestCase # :nodoc:
       assert_raises(Test::Unit::AssertionFailedError) do
         assert_same_elements([@a, "abc"].flatten, [3, 3, "def", "abc"])
       end
-    end
-  end
-
-  context "an array of values" do
-    setup do
-      @a = [1, 2, "(3)"]
-    end
-
-    context "after adding another value" do
-      setup do
-        @a.push(4)
-      end
-
-      should_change("the number of elements", :by => 1) { @a.length }
-      should_change("the number of elements", :from => 3) { @a.length }
-      should_change("the number of elements", :to => 4) { @a.length }
-      should_change("the first element", :by => 0) { @a[0] }
-      should_not_change("the first element") { @a[0] }
-    end
-
-    context "after replacing it with an array of strings" do
-      setup do
-        @a = %w(a b c d e f)
-      end
-
-      should_change("the number of elements", :by => 3) { @a.length }
-      should_change("the number of elements", :from => 3, :to => 6, :by => 3) { @a.length }
-      should_change("the first element") { @a[0] }
-      should_change("the second element", :from => 2, :to => "b") { @a[1] }
-      should_change("the third element", :from => /\d/, :to => /\w/) { @a[2] }
-      should_change("the last element", :to => String) { @a[3] }
     end
   end
 
@@ -249,69 +203,5 @@ class HelpersTest < ActiveSupport::TestCase # :nodoc:
     matcher = stub('matcher', :matches? => false)
     matcher.expects(:in_context).with(self)
     assert_rejects matcher, nil
-  end
-
-  context "given one treat exists and one post exists" do
-    setup do
-      Treat.create!
-      Post.create!(:title => 'title', :body => 'body', :user_id => 1)
-    end
-
-    teardown do
-      Treat.delete_all
-      Post.delete_all
-    end
-
-    context "creating a treat" do
-      setup do
-        Treat.create!
-      end
-
-      should_create :treat
-      should_fail do
-        should_create :post
-      end
-    end
-
-    context "creating a treat and a post" do
-      setup do
-        Treat.create!
-        Post.create!(:title => 'title 2', :body => 'body', :user_id => 1)
-      end
-
-      should_create :treat
-      should_create :post
-    end
-
-    context "destroying a treat" do
-      setup do
-        Treat.first.destroy
-      end
-
-      should_destroy :treat
-      should_fail do
-        should_destroy :post
-      end
-    end
-
-    context "destroying a treat and a post" do
-      setup do
-        Treat.first.destroy
-        Post.first.destroy
-      end
-
-      should_destroy :treat
-      should_destroy :post
-    end
-
-    context "doing nothing" do
-      should_fail do
-        should_create :treat
-      end
-
-      should_fail do
-        should_destroy :treat
-      end
-    end
   end
 end
