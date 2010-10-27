@@ -31,34 +31,6 @@ Feature: integrate with Rails
       """
     When I configure a wildcard route
 
-  Scenario: generate a rails application and use macros in Test::Unit
-    When I save the following as "test/unit/user_test.rb"
-      """
-      require 'test_helper'
-
-      class UserTest < ActiveSupport::TestCase
-        should_validate_presence_of :name
-      end
-      """
-    When I save the following as "test/functional/examples_controller_test.rb"
-      """
-      require 'test_helper'
-
-      class ExamplesControllerTest < ActionController::TestCase
-        def setup
-          get :show
-        end
-
-        should_respond_with :success
-        should_assign_to :example
-      end
-      """
-    When I run "rake test TESTOPTS=-v"
-    Then I should see "1 tests, 1 assertions, 0 failures, 0 errors"
-    And I should see "2 tests, 2 assertions, 0 failures, 0 errors"
-    And I should see "User should require name to be set"
-    And I should see "ExamplesController should assign @example"
-
   Scenario: generate a rails application and use matchers in Test::Unit
     When I save the following as "test/unit/user_test.rb"
       """
