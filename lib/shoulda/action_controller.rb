@@ -1,12 +1,11 @@
 require 'shoulda'
 require 'shoulda/action_controller/matchers'
-require 'shoulda/action_controller/macros'
 
 module Test # :nodoc: all
   module Unit
     class TestCase
       include Shoulda::ActionController::Matchers
-      extend Shoulda::ActionController::Macros
+      extend Shoulda::ActionController::Matchers
     end
   end
 end
