@@ -67,6 +67,53 @@ class AssociationMatcherTest < ActiveSupport::TestCase # :nodoc:
       end
       assert_rejects @matcher.dependent(:destroy), Child.new
     end
+
+    should "ignore other options" do
+      define_model :parent
+      define_model :child, :parent_id => :integer do
+        belongs_to :parent, :readonly => true
+      end
+      assert_accepts @matcher, Child.new
+    end
+
+    context "with options" do
+      setup do
+        @matcher = belong_to(:parent).with_options(:readonly => true, :touch => true)
+      end
+
+      should "accept a good association with the correct options" do
+        define_model :parent
+        define_model :child, :parent_id => :integer do
+          belongs_to :parent, :readonly => true, :touch => true
+        end
+        assert_accepts @matcher, Child.new
+      end
+
+      should "reject an association with missing options" do
+        define_model :parent
+        define_model :child, :parent_id => :integer do
+          belongs_to :parent, :readonly => true
+        end
+        assert_rejects @matcher, Child.new, :message => /missing :touch option/
+      end
+
+      should "reject an association with additional options" do
+        define_model :parent
+        define_model :child, :parent_id => :integer do
+          belongs_to :parent, :readonly => true, :touch => true, :validate => false
+        end
+        assert_rejects @matcher, Child.new, :message => /unexpected :validate option/
+      end
+
+      should "reject an association with incorrect option values" do
+        define_model :parent
+        define_model :child, :parent_id => :integer do
+          belongs_to :parent, :readonly => true, :touch => false
+        end
+        assert_rejects @matcher, Child.new,
+          :message => /expected :touch option to be true, but got false/
+      end
+    end
   end
 
   context "have_many" do
@@ -162,6 +209,53 @@ class AssociationMatcherTest < ActiveSupport::TestCase # :nodoc:
       end
       assert_rejects @matcher.dependent(:destroy), Parent.new
     end
+
+    should "ignore other options" do
+      define_model :child, :parent_id => :integer
+      define_model :parent do
+        has_many :children, :order => "first_name"
+      end
+      assert_accepts @matcher, Parent.new
+    end
+
+    context "with options" do
+      setup do
+        @matcher = have_many(:children).with_options(:order => "first_name", :limit =>5)
+      end
+
+      should "accept a good association with the correct options" do
+        define_model :child, :parent_id => :integer
+        define_model :parent do
+          has_many :children, :order => "first_name", :limit =>5
+        end
+        assert_accepts @matcher, Parent.new
+      end
+
+      should "reject an association with missing options" do
+        define_model :child, :parent_id => :integer
+        define_model :parent do
+          has_many :children, :order => "first_name"
+        end
+        assert_rejects @matcher, Parent.new, :message => /missing :limit option/
+      end
+
+      should "reject an association with additional options" do
+        define_model :child, :parent_id => :integer
+        define_model :parent do
+          has_many :children, :order => "first_name", :limit =>5, :validate => false
+        end
+        assert_rejects @matcher, Parent.new, :message => /unexpected :validate option/
+      end
+
+      should "reject an association with incorrect option values" do
+        define_model :child, :parent_id => :integer
+        define_model :parent do
+          has_many :children, :order => "first_name", :limit => 2
+        end
+        assert_rejects @matcher, Parent.new,
+          :message => /expected :limit option to be 5, but got 2/
+      end
+    end
   end
 
   context "have_one" do
@@ -218,6 +312,53 @@ class AssociationMatcherTest < ActiveSupport::TestCase # :nodoc:
       end
       assert_rejects @matcher.dependent(:destroy), Person.new
     end
+
+    should "ignore other options" do
+      define_model :detail, :person_id => :integer
+      define_model :person do
+        has_one :detail, :readonly => true
+      end
+      assert_accepts @matcher, Person.new
+    end
+
+    context "with options" do
+      setup do
+        @matcher = have_one(:detail).with_options(:readonly => true, :autosave => false)
+      end
+
+      should "accept a good association with the correct options" do
+        define_model :detail, :person_id => :integer
+        define_model :person do
+          has_one :detail, :readonly => true, :autosave => false
+        end
+        assert_accepts @matcher, Person.new
+      end
+
+      should "reject an association with missing options" do
+        define_model :detail, :person_id => :integer
+        define_model :person do
+          has_one :detail, :readonly => true
+        end
+        assert_rejects @matcher, Person.new, :message => /missing :autosave option/
+      end
+
+      should "reject an association with additional options" do
+        define_model :detail, :person_id => :integer
+        define_model :person do
+          has_one :detail, :readonly => true, :autosave => false, :validate => true
+        end
+        assert_rejects @matcher, Person.new, :message => /unexpected :validate option/
+      end
+
+      should "reject an association with incorrect option values" do
+        define_model :detail, :person_id => :integer
+        define_model :person do
+          has_one :detail, :readonly => true, :autosave => true
+        end
+        assert_rejects @matcher, Person.new,
+          :message => /expected :autosave option to be false, but got true/
+      end
+    end
   end
 
   context "have_and_belong_to_many" do
@@ -258,6 +399,64 @@ class AssociationMatcherTest < ActiveSupport::TestCase # :nodoc:
       end
       assert_rejects @matcher, Person.new
     end
-  end
 
+    should "ignore other options" do
+      define_model :relatives
+      define_model :person do
+        has_and_belongs_to_many :relatives, :order => "surname"
+      end
+      define_model :people_relative, :person_id => :integer,
+        :relative_id => :integer
+      assert_accepts @matcher, Person.new
+    end
+
+    context "with options" do
+      setup do
+        @matcher = have_and_belong_to_many(:relatives).with_options(
+          :order => "surname", :limit =>5)
+      end
+
+      should "accept a good association with the correct options" do
+        define_model :relatives
+        define_model :person do
+          has_and_belongs_to_many :relatives, :order => "surname", :limit =>5
+        end
+        define_model :people_relative, :person_id   => :integer,
+          :relative_id => :integer
+        assert_accepts @matcher, Person.new
+      end
+
+      should "reject an association with missing options" do
+        define_model :relatives
+        define_model :person do
+          has_and_belongs_to_many :relatives, :order => "surname"
+        end
+        define_model :people_relative, :person_id   => :integer,
+          :relative_id => :integer
+        assert_rejects @matcher, Person.new, :message => /missing :limit option/
+      end
+
+      should "reject an association with additional options" do
+        define_model :relatives
+        define_model :person do
+          has_and_belongs_to_many :relatives, :order => "surname", :limit =>5,
+            :validate => true
+        end
+        define_model :people_relative, :person_id   => :integer,
+          :relative_id => :integer
+        assert_rejects @matcher, Person.new, :message => /unexpected :validate option/
+      end
+
+      should "reject an association with incorrect option values" do
+        define_model :relatives
+        define_model :person do
+          has_and_belongs_to_many :relatives, :order => "surname", :limit =>2
+        end
+        define_model :people_relative, :person_id   => :integer,
+          :relative_id => :integer
+        assert_rejects @matcher, Person.new,
+          :message => /expected :limit option to be 5, but got 2/
+      end
+    end
+  end
 end

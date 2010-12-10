@@ -18,11 +18,13 @@ module Shoulda # :nodoc:
       # * <tt>through</tt> - association name for <tt>has_many :through</tt>
       # * <tt>dependent</tt> - tests that the association makes use of the
       #   dependent option.
+      # * <tt>with_options</tt> - specify values for other options
       #
       # Example:
       #   it { should have_many(:friends) }
       #   it { should have_many(:enemies).through(:friends) }
       #   it { should have_many(:enemies).dependent(:destroy) }
+      #   it { should have_many(:enemies).with_options(:readonly => true) }
       #
       def have_many(name)
         AssociationMatcher.new(:has_many, name)
@@ -35,9 +37,11 @@ module Shoulda # :nodoc:
       # Options:
       # * <tt>:dependent</tt> - tests that the association makes use of the
       #   dependent option.
+      # * <tt>with_options</tt> - specify values for other options
       #
       # Example:
       #   it { should have_one(:god) } # unless hindu
+      #   it { should have_one(:god).with_options(:readonly => true) }
       #
       def have_one(name)
         AssociationMatcher.new(:has_one, name)
@@ -46,7 +50,11 @@ module Shoulda # :nodoc:
       # Ensures that the has_and_belongs_to_many relationship exists, and that
       # the join table is in place.
       #
+      # Options:
+      # * <tt>with_options</tt> - specify values for other options
+      #
       #   it { should have_and_belong_to_many(:posts) }
+      #   it { should have_and_belong_to_many(:posts).with_options(:readonly => true) }
       #
       def have_and_belong_to_many(name)
         AssociationMatcher.new(:has_and_belongs_to_many, name)
@@ -68,6 +76,11 @@ module Shoulda # :nodoc:
           self
         end
 
+        def with_options(options)
+          @options = options
+          self
+        end
+
         def matches?(subject)
           @subject = subject
           association_exists? &&
@@ -75,7 +88,8 @@ module Shoulda # :nodoc:
             foreign_key_exists? &&
             through_association_valid? &&
             dependent_correct? &&
-            join_table_exists?
+            join_table_exists? &&
+            options_correct?
         end
 
         def failure_message
@@ -175,6 +189,41 @@ module Shoulda # :nodoc:
           else
             @missing = "#{klass} does not have a #{foreign_key} foreign key."
             false
+          end
+        end
+
+        def options_correct?
+          @options.nil? || (all_options_present && no_extra_options && option_values_correct)
+        end
+
+        def all_options_present
+          missing_options = @options.keys - reflection.options.keys
+          if missing_options.empty?
+            true
+          else
+            @missing = "missing #{missing_options.first.inspect} option"
+            false
+          end
+        end
+
+        def no_extra_options
+          extra_options = reflection.options.keys - @options.keys - [:extend, :join_table]
+          if extra_options.empty?
+            true
+          else
+            @missing = "Found unexpected #{extra_options.first.inspect} option"
+            false
+          end
+        end
+
+        def option_values_correct
+          @options.each do |option, expected_value|
+            actual_value = reflection.options[option]
+            unless actual_value == expected_value
+              @missing = "expected #{option.inspect} option to be " <<
+                "#{expected_value.inspect}, but got #{actual_value.inspect}"
+              return false
+            end
           end
         end
 
