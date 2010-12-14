@@ -2,7 +2,7 @@ $LOAD_PATH << File.join(File.dirname(__FILE__), 'lib')
 require 'shoulda/version'
 
 Gem::Specification.new do |s|
-  s.name = %q{shoulda}
+  s.name = %q{nimboids-shoulda}
   s.version = Shoulda::VERSION
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
